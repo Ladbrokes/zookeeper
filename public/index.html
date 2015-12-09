@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<title>ZooKeeper</title>
+	<link rel="stylesheet" href="main.css" type="text/css"/>
+	<link rel="stylesheet" href="bootstrap-switch-min.css" type="text/css"/>
+
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
+</head>
+<body>
+	<nav class="navbar navbar-default" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="/">ZooKeeper</a>
+			</div>
+			<div id="navbar">
+				<ul class="nav navbar-nav">
+					<li><a href="/">/</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+	<div class="container">
+		<div id="alerts"></div>
+		<div id="interfaces">
+		</div>
+	</div>
+
+	<div style="display: none" id="templates">
+		<div id="interface_template">
+			<div class="row">
+				<div class="interface col-md-12 col-sm-12 col-xs-24">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<div class="col-md-2 pull-right text-right">
+								<button class="btn btn-default glyphicon glyphicon-cog" type="button" data-toggle="modal" data-target="#setupModal"></button>
+								<input class="switch" type="checkbox">
+							</div>
+							<h3 class="panel-title"><span class="ip"></span></h3>
+							<span class="description"></span>
+						</div>
+						<div class="panel-body">
+							<div class="row">
+								<div class="col-md-3 col-sm-3 col-xs-6">
+									Currently forwarded to:<br/>
+									Comment:<br/>
+									Maintaining original host:<br/>
+									Forwarding was activated by: <br/>
+									Forwarding will expire: <br/>
+									Custom headers:
+								</div>
+								<div class="col-md-6 col-sm-6 col-xs-12">
+									<span class="targeturl" data-name="TargetURL"></span><br/>
+									<span class="comment" data-name="Comment"></span><br/>
+									<span class="maintainhost" data="MaintainHost"></span><br/>
+									<span class="who" data-name="Who"></span><br/>
+									<span class="expire" data-name="Expire"></span><br/>
+									<div class="setheaders">
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="setheader_template">
+			<div class="row">
+				<div class="name col-md-3 col-sm-3 col-xs-6"></div>
+				<div class="value col-md-3 col-sm-3 col-xs-6"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="setupModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">Modal title</h4>
+				</div>
+				<div class="modal-body">
+					<form>
+						<div class="form-group">
+							<label for="TargetURL">Target URL</label>
+							<input type="url" class="form-control" id="TargetURL" placeholder="https://you.example.com">
+						</div>
+						<div class="form-group">
+							<label for="Comment">Comment</label>
+							<input type="text" class="form-control" id="Comment" placeholder="Comment">
+						</div>
+						<div class="form-group">
+							<label for="MaintainHost">Maintain original host</label>
+							<input class="switch" id="MaintainHost" type="checkbox" checked>
+						</div>
+						<div class="form-group">
+							<label for="SetHeader">Custom Headers</label>
+							<textarea class="form-control" id="SetHeader" rows="3" placeholder="X-Header-Name: Value - 1 per line"></textarea>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary">Save changes</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="bootstrap-switch-min.js"></script>
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+</body>
+</html>
