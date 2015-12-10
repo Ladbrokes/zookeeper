@@ -24,13 +24,13 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo"
@@ -95,6 +95,16 @@ func getData(ip string) *proxyData {
 	return data
 }
 
+func clientIP(r *http.Request) string {
+	rawClientIP, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		log.Printf("Unable to parse IP %q: %s", r.RemoteAddr, err)
+		return "0.0.0.0"
+	}
+	clientIP := net.ParseIP(rawClientIP)
+	return clientIP.String()
+}
+
 func proxyDownInterface(ip string) (e *echo.Echo) {
 	data := getData(ip)
 	data.Enabled = false
@@ -105,9 +115,25 @@ func proxyDownInterface(ip string) (e *echo.Echo) {
 
 	e = echo.New()
 	e.Any("/", func(c *echo.Context) error {
+		r := c.Request()
+		clientIP := clientIP(r)
+		log.Printf("[%s] %s %s %s disabled", ip, clientIP, r.Host, r.URL.String())
+
 		return c.String(http.StatusOK, "Proxy disabled")
 	})
 	return
+}
+
+func singleJoiningSlash(a, b string) string {
+	aslash := strings.HasSuffix(a, "/")
+	bslash := strings.HasPrefix(b, "/")
+	switch {
+	case aslash && bslash:
+		return a + b[1:]
+	case !aslash && !bslash:
+		return a + "/" + b
+	}
+	return a + b
 }
 
 func proxyUpInterface(ip string) *httputil.ReverseProxy {
@@ -130,25 +156,30 @@ func proxyUpInterface(ip string) *httputil.ReverseProxy {
 	return &httputil.ReverseProxy{
 		Director: func(r *http.Request) {
 			data := getData(ip)
+			clientIP := clientIP(r)
+			originalRequest := r.URL
+			targetQuery := data.TargetURL.RawQuery
+
 			r.URL.Scheme = data.TargetURL.Scheme
 			r.URL.Host = data.TargetURL.Host
-			r.URL.Path = data.TargetURL.Path
-
-			rawClientIP, _, err := net.SplitHostPort(r.RemoteAddr)
-			if err != nil {
-				log.Printf("Unable to parse IP %q: %s", r.RemoteAddr, err)
+			r.URL.Path = singleJoiningSlash(data.TargetURL.Path, r.URL.Path)
+			if targetQuery == "" || r.URL.RawQuery == "" {
+				r.URL.RawQuery = targetQuery + r.URL.RawQuery
+			} else {
+				r.URL.RawQuery = targetQuery + "&" + r.URL.RawQuery
 			}
-			clientIP := net.ParseIP(rawClientIP)
+
+			log.Printf("[%s] %s %s %s > %s", ip, clientIP, r.Host, originalRequest.String(), r.URL.String())
 
 			forwardedFor := r.Header.Get(echo.XForwardedFor)
 			if forwardedFor != "" {
-				forwardedFor += ", " + clientIP.String()
+				forwardedFor += ", " + clientIP
 			} else {
-				forwardedFor = clientIP.String()
+				forwardedFor = clientIP
 			}
 
 			r.Header.Add("X-Remote-Addr", r.RemoteAddr)
-			r.Header.Add("X-Real-IP", clientIP.String())
+			r.Header.Add("X-Real-IP", clientIP)
 			r.Header.Add("X-Forwarded-For", forwardedFor)
 
 			for name, val := range data.SetHeader {
@@ -158,9 +189,6 @@ func proxyUpInterface(ip string) *httputil.ReverseProxy {
 			if !data.MaintainHost {
 				r.Host = r.URL.Host
 			}
-
-			dump, err := httputil.DumpRequest(r, true)
-			fmt.Println(string(dump))
 		},
 	}
 }
