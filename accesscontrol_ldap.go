@@ -187,7 +187,7 @@ func init() {
 func (l *ldapAccessControl) tryAndReconnect(r ldapAccessControlRetryable) (err error) {
 	if err = r(); err != nil {
 		if lde, ok := err.(*ldap.Error); ok && lde.ResultCode == ldap.ErrorNetwork && lde.Err.Error() == "ldap: connection closed" {
-			log.Println("ldapAccessControl reconnecting to ldap and retrying")
+			log.Println("ldapAccessControl: Reconnecting to ldap and retrying")
 			l.conn.Close()
 			err = l.connect()
 			if err == nil {
