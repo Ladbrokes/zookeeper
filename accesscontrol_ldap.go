@@ -52,6 +52,8 @@ type ldapAccessControlConfiguration struct {
 	SearchTemplate string `toml:"search_template"`
 }
 
+type ldapAccessControlRetryable func() error
+
 // It's nice to write pretty filters but something in go/ldap doesn't seem to like all the whitespace/newlines
 var ldapAccessControlFilterRegexp = regexp.MustCompile(`\s*\n\s*|\s*(\()\s*(.+?)\s*(\))\s*`)
 
@@ -153,7 +155,15 @@ func (l *ldapAccessControl) Can(c EchoStasher) error {
 			nil,
 		)
 
-		searchResult, err := l.conn.Search(searchRequest)
+		var (
+			searchResult *ldap.SearchResult
+			err          error
+		)
+
+		err = l.tryAndReconnect(func() (err error) {
+			searchResult, err = l.conn.Search(searchRequest)
+			return
+		})
 		if err != nil {
 			log.Println("ldapAccessControl: Unable to execute LDAP search")
 			log.Println(err)
@@ -172,4 +182,18 @@ func init() {
 	RegisterAccessControlInterface(ldapAccessControlName, func() AccessControlInterface {
 		return &ldapAccessControl{}
 	})
+}
+
+func (l *ldapAccessControl) tryAndReconnect(r ldapAccessControlRetryable) (err error) {
+	if err = r(); err != nil {
+		if lde, ok := err.(*ldap.Error); ok && lde.ResultCode == ldap.ErrorNetwork && lde.Err.Error() == "ldap: connection closed" {
+			log.Println("ldapAccessControl reconnecting to ldap and retrying")
+			l.conn.Close()
+			err = l.connect()
+			if err == nil {
+				err = r()
+			}
+		}
+	}
+	return
 }
