@@ -22,7 +22,7 @@ We've all been there right? Working away keeping the infrustructure from collaps
  * More flexible access control
  * Basic authentication
  * Websocket updating of the UI
- * Button to click to extend timeout without "disable/enabling"
+ * ~~Button to click to extend timeout without "disable/enabling"~~
  * Web interface for address configuration (Add more ips on the fly)
  * Per interface tls configuration
  * Tests
