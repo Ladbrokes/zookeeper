@@ -154,17 +154,24 @@ func adminInterface() (e *echo.Echo) {
 		data := getData(ip)
 		previous := data.Enabled
 		c.Bind(&data.Enabled)
+
+		updateProxy := func() {
+			data.Expire = time.Now().Add(config.MaxTTL.Duration)
+			if authInterface != nil {
+				_, user := authInterface.Authenticated(c)
+				data.Who = user
+			}
+		}
+
 		if previous != data.Enabled {
 			if data.Enabled {
 				proxies[ip].Handler = proxyUpInterface(ip)
-				data.Expire = time.Now().Add(config.MaxTTL.Duration)
-				if authInterface != nil {
-					_, user := authInterface.Authenticated(c)
-					data.Who = user
-				}
+				updateProxy()
 			} else {
 				proxies[ip].Handler = proxyDownInterface(ip)
 			}
+		} else if data.Enabled {
+			updateProxy()
 		}
 		return c.JSON(http.StatusOK, data)
 	})

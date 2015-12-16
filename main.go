@@ -114,7 +114,7 @@ func proxyDownInterface(ip string) (e *echo.Echo) {
 	data.stop = nil
 
 	e = echo.New()
-	e.Any("/", func(c *echo.Context) error {
+	e.Any("/*", func(c *echo.Context) error {
 		r := c.Request()
 		clientIP := clientIP(r)
 		log.Printf("[%s] %s %s %s disabled", ip, clientIP, r.Host, r.URL.String())

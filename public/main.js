@@ -38,6 +38,9 @@
 		this.bssw = this.elm.find('input.switch').bootstrapSwitch().on('switchChange.bootstrapSwitch', function(event, state) {
 			this.setEnable(state);
 		}.bind(this));
+		this.ebtn = this.elm.find('button.extend').on('click', function() {
+			this.setEnable(true);
+		}.bind(this));
 
 		ReqJSON("GET", "/proxy/" + ip, this.dataRefresh.bind(this));
 
@@ -55,6 +58,7 @@
 		this.elm.find('span.who').text(data.TargetURL === null || data.Who === "" ? "nobody" : data.Who)
 		this.elm.find('span.expire').text(data.TargetURL === null || data.Expire === undefined || data.Expire === "" ? "never" : data.Expire)
 		this.elm.find('span.maintainhost').text(data.MaintainHost ? "yes" : "no")
+		this.elm.find('button.extend').toggle(data.Enabled)
 		var div = this.elm.find('div.setheaders').empty()
 		Object.keys(data.SetHeader).forEach(function(name) {
 			template = setheaderTemplate.clone(true)
